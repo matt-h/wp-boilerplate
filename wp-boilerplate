@@ -1,0 +1,73 @@
+#!/bin/bash
+
+PLUGIN_NAME="$1"
+PLUGIN_SLUG="$2"
+PLUGIN_URI="$3"
+PLUGIN_AUTHOR="$4"
+PLUGIN_AUTHOR_URI="$5"
+PLUGIN_DESCRIPTION="$6"
+
+if [ -z "$PLUGIN_NAME" ]
+then
+	read -p "What is the Plugin Name? " PLUGIN_NAME
+fi
+
+TMPSLUG=`echo ${PLUGIN_NAME// /-} | awk '{print tolower($0)}'`
+if [ -z "$PLUGIN_SLUG" ]
+then
+	read -p "Plugin slug? [$TMPSLUG] " PLUGIN_SLUG
+fi
+if [ -z "$PLUGIN_SLUG" ]
+then
+	PLUGIN_SLUG=$TMPSLUG
+fi
+
+if [ -z "$PLUGIN_URI" ]
+then
+	read -p "Plugin URL? " PLUGIN_URI
+fi
+if [ -z "$PLUGIN_AUTHOR" ]
+then
+	read -p "Plugin Author? " PLUGIN_AUTHOR
+fi
+if [ -z "$PLUGIN_AUTHOR_URI" ]
+then
+	read -p "Plugin Author URI? " PLUGIN_AUTHOR_URI
+fi
+if [ -z "$PLUGIN_DESCRIPTION" ]
+then
+	read -p "Plugin Description? " PLUGIN_DESCRIPTION
+fi
+
+PLUGIN_CLASS_NAME=${PLUGIN_NAME// /_}
+
+CURRENTDIR=`pwd`
+wget -qO- https://github.com/tommcfarlin/WordPress-Plugin-Boilerplate/archive/master.tar.gz | tar xz -C /tmp
+mv /tmp/WordPress-Plugin-Boilerplate-master/plugin-name/trunk/* "$CURRENTDIR/"
+rm -rf /tmp/WordPress-Plugin-Boilerplate-master
+
+# Rename all files with the plugin slug
+for file in $(find . -name "*plugin-name*")
+do
+	mv "$file" "`echo $file | sed s/plugin-name/$PLUGIN_SLUG/`"
+done
+
+if [ ! -z "$PLUGIN_URI" ]
+then
+	find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s|http://example.com/plugin-name-uri/|$PLUGIN_URI|g"
+fi
+if [ ! -z "$PLUGIN_DESCRIPTION" ]
+then
+	find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s/This is a short description of what the plugin does. It's displayed in the WordPress dashboard./$PLUGIN_DESCRIPTION/g"
+fi
+if [ ! -z "$PLUGIN_AUTHOR" ]
+then
+	find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s/Your Name or Your Company/$PLUGIN_AUTHOR/g"
+fi
+if [ ! -z "$PLUGIN_AUTHOR_URI" ]
+then
+	find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s|http://example.com/|$PLUGIN_AUTHOR_URI|g"
+fi
+find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s/plugin-name/$PLUGIN_SLUG/g"
+find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s/Plugin_Name/$PLUGIN_CLASS_NAME/g"
+find . -type d '(' -name .svn -o -name .git ')' -prune -o -type f -print0 | xargs -0 sed -i "s/WordPress Plugin Boilerplate/$PLUGIN_NAME/g"
